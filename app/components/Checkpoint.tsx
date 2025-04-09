@@ -9,7 +9,7 @@ export type Forwarded = {
 export function createCheckpoint({ url }: Forwarded) {
   function Checkpoint() {
     const outer = useRef<HTMLDivElement>(null);
-    const inner = useTextbox({ text: url, font: "32px monospace", outer });
+    const inner = useTextbox({ text: url, font: "24px monospace", outer });
     return (
       <div>
         <p>Lorem ipsum</p>
@@ -82,7 +82,14 @@ function useTextbox(options: {
 
     setContext();
 
-    const drawer = drawText({ ctx, text, top: 0, left: 0 });
+    const drawer = drawText({
+      ctx,
+      text,
+      wordBreaks: /[:/.?]/u,
+      top: 0,
+      left: 0,
+      lineHeight: 1.2,
+    });
 
     const height = drawer.height();
     canvas.width = width * dpr;
@@ -124,39 +131,82 @@ type PlaceLetters = {
   text: string;
   left: number;
   top: number;
+  wordBreaks?: RegExp;
   lineHeight?: number;
   letterSpacing?: number;
 };
 
 function* placeLetters(options: PlaceLetters) {
-  const { ctx, text, lineHeight = 1, letterSpacing = 0 } = options;
-  const bbox = ctx.canvas.getBoundingClientRect();
+  const { ctx, text, wordBreaks = / /, lineHeight = 1, letterSpacing = 0 } = options;
+
+  const phrases: string[] = [];
+  {
+    let phrase = "";
+    let shouldBreak = false;
+    for (const char of [...text]) {
+      if (shouldBreak) {
+        if (!wordBreaks.test(char)) {
+          phrases.push(phrase);
+          phrase = char;
+          shouldBreak = false;
+        } else {
+          phrase += char;
+        }
+      } else {
+        shouldBreak = wordBreaks.test(char);
+        phrase += char;
+      }
+    }
+    phrases.push(phrase);
+  }
 
   let { left, top } = options;
   const origin = { left, top };
   let descent = 0;
 
+  const bbox = ctx.canvas.getBoundingClientRect();
+
   ctx.save();
   ctx.textBaseline = "top";
 
-  for (const char of [...text]) {
+  const measure = (text: string) => {
     const { emHeightAscent, emHeightDescent, actualBoundingBoxDescent, width } =
-      ctx.measureText(char);
-
+      ctx.measureText(text);
     const em = (emHeightDescent - emHeightAscent) * lineHeight;
-    descent = Math.max(descent, actualBoundingBoxDescent);
+    return { width, em, actualBoundingBoxDescent };
+  };
 
-    if (left + width > bbox.width) {
-      top += em;
-      left = origin.left;
-      descent = actualBoundingBoxDescent;
+  const newline = (measured: ReturnType<typeof measure>) => {
+    const { em, actualBoundingBoxDescent } = measured;
+    top += em;
+    left = origin.left;
+    descent = actualBoundingBoxDescent;
+  };
+
+  for (const phrase of phrases) {
+    {
+      const measured = measure(phrase);
+      const { width } = measured;
+      if (left + width > bbox.width && width <= bbox.width) {
+        newline(measured);
+      }
     }
 
-    const bottom = top + descent;
+    for (const char of [...phrase]) {
+      const measured = measure(char);
+      const { width, em, actualBoundingBoxDescent } = measured;
 
-    yield { char, em, left, top, bottom };
+      if (left + width > bbox.width) {
+        newline(measured);
+      } else {
+        descent = Math.max(descent, actualBoundingBoxDescent);
+      }
 
-    left += width + letterSpacing;
+      const bottom = top + descent;
+      yield { char, em, left, top, bottom };
+
+      left += width + letterSpacing;
+    }
   }
 
   ctx.restore();

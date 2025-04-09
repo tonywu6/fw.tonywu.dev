@@ -28,4 +28,5 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  esbuild: { legalComments: "external" },
 });

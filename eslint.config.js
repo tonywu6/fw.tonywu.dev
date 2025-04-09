@@ -12,7 +12,7 @@ import globals from "globals";
 import ts from "typescript-eslint";
 
 export default defineConfig([
-  { ignores: ["!**/.server", "!**/.client"] },
+  { ignores: ["!**/.server", "!**/.client", "build"] },
 
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],

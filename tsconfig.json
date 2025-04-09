@@ -26,6 +26,7 @@
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx",
-    "eslint.config.js"
+    "eslint.config.js",
+    "util"
   ]
 }

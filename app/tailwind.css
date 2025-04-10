@@ -4,11 +4,15 @@
   --font-sans:
     "Inter", "Noto Serif SC", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --font-mono:
+    "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-[#f8f9fa] dark:bg-[#0b0e14];
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;

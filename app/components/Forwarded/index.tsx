@@ -1,160 +1,297 @@
+import type { MetaFunction } from "@remix-run/react";
 import { useLoaderData } from "@remix-run/react";
 import { useQuery } from "@tanstack/react-query";
 import { importJWK, jwtDecrypt } from "jose";
 import type { CSSProperties, RefObject } from "react";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { twJoin } from "tailwind-merge";
 
 import type { forwarded } from "./.server";
 
+export const meta: MetaFunction = () => [{ title: "index.html" }];
+
 export function Forwarded() {
-  const { key, url } = useForwarded();
+  const { decrypt, hashable, reason } = useForwarded();
 
-  const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLCanvasElement>(null);
-  const width = useClientWidth(outer);
+  const width = useClientWidth(inner);
 
-  const { error } = useQuery({
+  const { data: { initHeight, drawBlocking, drawLater } = {} } = useQuery({
+    queryKey: [String(decrypt), hashable, width],
+    enabled: width !== undefined,
     queryFn: async () => {
-      await textbox({
-        paragraph: {
-          text: [
-            {
-              text: (await url()).toString(),
-              font: "400 24px Roboto Mono",
-              fill: "aquamarine",
-            },
-          ],
-          wordBreaks: /[:/.?+ ]/u,
-          lineHeight: 1.4,
-        },
-        width: width.current!,
-        canvas: inner.current!,
+      const url = await decrypt();
+
+      const left = 0;
+      const top = 2;
+
+      const small = window.matchMedia("(width < 40rem)").matches;
+
+      const fontSize = small ? 20 : 24;
+      const lineHeight = fontSize * 1.4;
+
+      const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const style = dark
+        ? {
+            protocol: "#8a9199",
+            host: "#59c2ff",
+            pathname: "#59c2ff",
+            search: "#d2a6ff",
+            hash: "#95e6cb",
+            normal: 300,
+            strong: 600,
+          }
+        : {
+            protocol: "#565b66",
+            host: "#2663a0",
+            pathname: "#2663a0",
+            search: "#6e5688",
+            hash: "#39705e",
+            normal: 400,
+            strong: 600,
+          };
+
+      const font = "Roboto Mono, ui-monospace, monospace";
+
+      const text = {
+        text: [
+          {
+            text: url.protocol + "//",
+            fill: style.protocol,
+            font: `${style.normal} ${fontSize}px ${font}`,
+          },
+          {
+            text: url.host,
+            fill: style.host,
+            font: `${style.strong} ${fontSize}px ${font}`,
+          },
+          {
+            text: url.pathname,
+            fill: style.pathname,
+            font: `${style.normal} ${fontSize}px ${font}`,
+          },
+          {
+            text: url.search,
+            fill: style.search,
+            font: `${style.normal} ${fontSize}px ${font}`,
+          },
+          {
+            text: url.hash,
+            fill: style.hash,
+            font: `${style.normal} ${fontSize}px ${font}`,
+          },
+        ],
+        wordBreaks: /[:/.?+ -]/u,
+      } satisfies StyledParagraph;
+
+      const drawer = drawText({
+        width: unwrap({ width }),
+        leading: lineHeight,
+        left: scaled(left),
+        top: scaled(top),
+        paragraph: text,
       });
 
-      return null;
+      const bboxHeight = (measured: number) => top * 2 + measured;
+
+      const initHeight = bboxHeight(drawer.measure().height);
+
+      function drawBlocking() {
+        drawer.draw(({ height }) => {
+          height = bboxHeight(height);
+          const canvas = unwrap({ canvas: inner.current });
+          canvas.style.height = `${height}px`;
+          canvas.width = scaled(unwrap({ width }));
+          canvas.height = scaled(height);
+          const ctx = canvas.getContext("2d")!;
+          ctx.resetTransform();
+          ctx.scale(scaled(1), scaled(1));
+          return ctx;
+        });
+      }
+
+      async function drawLater() {
+        await drawer.fonts().catch(() => {});
+        drawBlocking();
+      }
+
+      return { initHeight, drawBlocking, drawLater };
     },
-    queryKey: [String(textbox), width, key],
   });
 
-  if (error) {
-    throw error;
-  }
+  useEffect(() => {
+    drawBlocking?.();
+    drawLater?.();
+  }, [drawBlocking, drawLater]);
+
+  const copyToClipboard = () => {
+    navigator.clipboard
+      .writeText(window.location.href)
+      .then(() => {
+        setCopied(window.setTimeout(() => setCopied(undefined), 5_000));
+      })
+      .catch(() => {});
+  };
+
+  const [copied, setCopied] = useState<number>();
+
+  useEffect(
+    () => () => {
+      if (copied) {
+        window.clearTimeout(copied);
+      }
+    },
+    [copied],
+  );
 
   return (
-    <div>
-      <div
+    <div className="min-h-screen flex flex-col justify-between">
+      <main
         className={twJoin(
-          "w-full min-h-[40px]",
-          "flex flex-col justify-center items-stretch",
+          "px-4 py-4 w-full min-w-0 max-w-[1024px]",
+          "sm:px-6 sm:py-8",
+          "flex flex-col items-stretch gap-4",
         )}
-        ref={outer}
       >
-        <canvas height={0} ref={inner}></canvas>
-      </div>
+        {copied === undefined ? (
+          <p>Click link below to copy, then continue in your browser.</p>
+        ) : (
+          <p>
+            <span className="text-[#5f7632] dark:text-[#aad94c]">
+              <IconCheck />
+              Link copied,
+            </span>
+            <span> paste into browser to continue.</span>
+          </p>
+        )}
+        <div
+          role="link"
+          title="click to copy"
+          aria-keyshortcuts="Enter"
+          tabIndex={0}
+          onClick={() => copyToClipboard()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              copyToClipboard();
+            }
+          }}
+          className={twJoin(
+            "flex flex-col justify-center items-stretch",
+            "focus:outline-[1.5px] focus:outline-offset-8",
+            "focus:outline-[#2663a0] dark:focus:outline-[#59c2ff]",
+            "pb-0.5 cursor-pointer",
+            // must have boxes to have a width to measure height
+            // so cannot be display: none here
+            initHeight === undefined ? "invisible" : null,
+          )}
+        >
+          <canvas height={0} style={{ height: initHeight }} ref={inner}></canvas>
+        </div>
+      </main>
+      <footer
+        className={twJoin(
+          "px-4 py-4 w-full min-w-0 max-w-[1024px]",
+          "sm:px-6 sm:py-6",
+          "flex flex-col items-stretch gap-2",
+        )}
+      >
+        <p className="text-sm dark:text-neutral-300">
+          You are seeing this page because of:
+        </p>
+        <pre className="text-sm whitespace-pre-wrap leading-[1.4] group">
+          {reason.map(({ text, style }, idx) => {
+            let inner = <code>{text}</code>;
+            switch (style) {
+              case "strong":
+                inner = (
+                  <strong
+                    className={twJoin(
+                      "text-[#c53601] dark:text-[#ff8f40]",
+                      "font-bold",
+                    )}
+                  >
+                    {inner}
+                  </strong>
+                );
+                break;
+              case "normal":
+                inner = (
+                  <span
+                    className={twJoin(
+                      "text-[#c53601] dark:text-[#ff8f40]",
+                      "opacity-60 dark:opacity-30",
+                      "group-hover:opacity-90",
+                    )}
+                  >
+                    {inner}
+                  </span>
+                );
+                break;
+            }
+            return <Fragment key={`${text}-${idx}`}>{inner}</Fragment>;
+          })}
+        </pre>
+      </footer>
     </div>
   );
 }
 
-async function textbox(options: {
-  paragraph: StyledParagraph;
-  width: number;
-  canvas: HTMLCanvasElement;
-}) {
-  const { paragraph, width, canvas } = options;
-
-  const dpr = window.devicePixelRatio || 1;
-
-  const ctx = canvas.getContext("2d")!;
-  ctx.save();
-
-  const setContext = () => {
-    ctx.resetTransform();
-    ctx.scale(dpr, dpr);
-  };
-
-  const scaled = (px: number) => px * dpr;
-
-  setContext();
-
-  const top = 4;
-
-  const drawer = await drawText({
-    ctx,
-    width,
-    top: scaled(top),
-    left: 0,
-    paragraph,
-  });
-
-  const textHeight = drawer.height();
-  const height = top * 2 + textHeight;
-  canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
-  canvas.width = scaled(width);
-  canvas.height = scaled(height);
-
-  setContext();
-
-  drawer.draw();
-
-  ctx.restore();
-}
-
 function useClientWidth(elem: RefObject<HTMLElement>) {
-  const width = useRef(elem.current?.clientWidth);
-  const [, setWidth] = useState(width.current);
+  const [width, setWidth] = useState(elem.current?.clientWidth);
 
   useEffect(() => {
     const { current: target } = elem;
-
     if (!target) {
       return;
     }
-
-    width.current = target.clientWidth;
-
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         if (entry.target === target) {
-          setWidth(entry.contentBoxSize[0].inlineSize);
-          width.current = target.clientWidth;
+          setWidth(target.clientWidth);
           break;
         }
       }
     });
-
     observer.observe(target);
-
     return () => observer.disconnect();
   }, [elem]);
 
   return width;
 }
 
-async function drawText(options: PlaceLetters) {
-  const { ctx } = options;
-  const letters = [...(await placeLetters(options))];
-  return {
-    height: () => {
-      return letters.slice(-1)[0].bottom;
-    },
-    draw: () => {
-      ctx.save();
-      ctx.textBaseline = "top";
-      for (const { char, left, top, font, fill } of letters) {
-        ctx.font = font;
-        ctx.fillStyle = fill;
-        ctx.fillText(char, left, top);
-      }
-      ctx.restore();
-    },
+function drawText(options: PlaceLetters) {
+  const { width } = options;
+  const { place, fonts } = placeLetters(options);
+
+  const measure = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = scaled(width);
+    const ctx = canvas.getContext("2d")!;
+    ctx.scale(scaled(1), scaled(1));
+    const letters = [...place(ctx)];
+    const height = letters.slice(-1)[0].bottom;
+    return { letters, height };
   };
+
+  const draw = (setup: (options: { height: number }) => CanvasRenderingContext2D) => {
+    const { letters, height } = measure();
+    const ctx = setup({ height });
+    ctx.save();
+    ctx.textBaseline = "top";
+    for (const { char, left, top, font, fill } of letters) {
+      ctx.font = font;
+      ctx.fillStyle = fill;
+      ctx.fillText(char, left, top);
+    }
+    ctx.restore();
+  };
+
+  return { fonts, measure, draw };
 }
 
 type PlaceLetters = {
-  ctx: CanvasRenderingContext2D;
   width: number;
+  leading: number;
   left: number;
   top: number;
   paragraph: StyledParagraph;
@@ -163,7 +300,6 @@ type PlaceLetters = {
 type StyledParagraph = {
   text: StyledText[];
   wordBreaks?: RegExp;
-  lineHeight?: number;
   letterSpacing?: number;
 };
 
@@ -173,11 +309,10 @@ type StyledText = {
   fill: CanvasRenderingContext2D["fillStyle"];
 };
 
-async function placeLetters(options: PlaceLetters) {
+function placeLetters(options: PlaceLetters) {
   const {
-    paragraph: { text: paragraph, wordBreaks = / /, lineHeight = 1, letterSpacing = 0 },
+    paragraph: { text: paragraph, wordBreaks = / /, letterSpacing = 0 },
     width: lineWidth,
-    ctx,
   } = options;
 
   const phrases: StyledText[] = [];
@@ -206,27 +341,23 @@ async function placeLetters(options: PlaceLetters) {
     }
   }
 
-  let { left, top } = options;
-  const origin = { left, top };
-  let descent = 0;
+  async function fonts() {
+    await Promise.all(phrases.map(({ font, text }) => document.fonts.load(font, text)));
+  }
 
-  const measure = (text: string) => {
-    const { emHeightAscent, emHeightDescent, actualBoundingBoxDescent, width } =
-      ctx.measureText(text);
-    const em = (emHeightDescent - emHeightAscent) * lineHeight;
-    return { width, em, actualBoundingBoxDescent };
-  };
+  function* place(ctx: CanvasRenderingContext2D) {
+    const { leading } = options;
+    let { left, top } = options;
+    const origin = { left, top };
+    let descent = 0;
 
-  const newline = (measured: ReturnType<typeof measure>) => {
-    const { em, actualBoundingBoxDescent } = measured;
-    top += em;
-    left = origin.left;
-    descent = actualBoundingBoxDescent;
-  };
+    const newline = (measured: TextMetrics) => {
+      const { actualBoundingBoxDescent } = measured;
+      top += leading;
+      left = origin.left;
+      descent = actualBoundingBoxDescent;
+    };
 
-  await Promise.all(phrases.map(({ font, text }) => document.fonts.load(font, text)));
-
-  return (function* () {
     ctx.save();
     ctx.textBaseline = "top";
 
@@ -234,7 +365,7 @@ async function placeLetters(options: PlaceLetters) {
       ctx.font = font;
 
       {
-        const measured = measure(text);
+        const measured = ctx.measureText(text);
         const { width } = measured;
         if (left + width > lineWidth && width <= lineWidth) {
           newline(measured);
@@ -242,8 +373,8 @@ async function placeLetters(options: PlaceLetters) {
       }
 
       for (const char of [...text]) {
-        const measured = measure(char);
-        const { width, em, actualBoundingBoxDescent } = measured;
+        const measured = ctx.measureText(char);
+        const { width, actualBoundingBoxDescent } = measured;
 
         if (left + width > lineWidth) {
           newline(measured);
@@ -252,28 +383,63 @@ async function placeLetters(options: PlaceLetters) {
         }
         const bottom = top + descent;
 
-        yield { char, font, fill, em, left, top, bottom };
+        yield { char, font, fill, left, top, bottom };
 
         left += width + letterSpacing;
       }
     }
 
     ctx.restore();
-  })();
+  }
+
+  return { place, fonts };
+}
+
+function scaled(px: number) {
+  const dpr = window.devicePixelRatio || 1;
+  return px * dpr;
 }
 
 function useForwarded() {
-  const { jwk, jwt } = useLoaderData<Loader>();
+  const { jwk, jwt, reason } = useLoaderData<Loader>();
   return {
-    key: [jwk, jwt],
-    url: async () => {
+    decrypt: async () => {
       const key = await importJWK(jwk);
       const {
         payload: { [claim]: raw },
       } = await jwtDecrypt(jwt, key);
       return new URL(raw as string);
     },
+    hashable: [jwk, jwt] as unknown,
+    reason,
   };
+}
+
+function IconCheck() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="size-4 relative top-[-1px] me-1 inline"
+    >
+      <path
+        fillRule="evenodd"
+        d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function unwrap<T>(data: Record<string, T | null | undefined>): T {
+  for (const [k, v] of Object.entries(data)) {
+    if (v === null || v === undefined) {
+      throw new Error(`${k} is ${String(v)}`);
+    }
+    return v;
+  }
+  throw new Error("unreachable: data is empty");
 }
 
 type Loader = ReturnType<typeof forwarded>;

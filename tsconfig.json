@@ -22,8 +22,12 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "**/.server.ts",
+    "**/.server.tsx",
     "**/.server/**/*.ts",
     "**/.server/**/*.tsx",
+    "**/.client.ts",
+    "**/.client.tsx",
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx",
     "eslint.config.js",

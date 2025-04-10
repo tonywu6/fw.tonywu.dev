@@ -5,7 +5,9 @@ import type { LinksFunction } from "@remix-run/cloudflare";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-export const links: LinksFunction = () => [];
+export const links: LinksFunction = () => [
+  { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (

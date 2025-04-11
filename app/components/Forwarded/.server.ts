@@ -15,6 +15,7 @@ export function forwarded({ url }: { url: string }) {
         return res;
       }
       case "blocked": {
+        const enc = "A128GCM";
         const key = await generateSecret(enc, { extractable: true });
         const jwt = await new EncryptJWT({ [claim]: url.toString() })
           .setProtectedHeader({ alg: "dir", enc })
@@ -61,7 +62,7 @@ function detectUserAgent(ua: string): UserAgentAction {
 
   for (const token of ua.matchAll(/(?<product>[^ ]+)\/(?<version>[^ ]+)/g)) {
     const { product } = token.groups ?? {};
-    if (blockProducts.has(product)) {
+    if (blockProducts.has(product.toLowerCase())) {
       return { action: "blocked", reason: explain([token.index, product]) };
     }
   }
@@ -73,6 +74,21 @@ function detectUserAgent(ua: string): UserAgentAction {
   }
 }
 
-const enc = "A128GCM";
-
-const blockProducts = new Set(["Firefox", "Chrome", "AppleWebKit"]);
+const blockProducts = new Set(
+  [
+    "AliApp(DingTalk",
+    "AlipayClient",
+    "baiduboxapp",
+    "Baiduspider",
+    "DingTalk",
+    "LBBROWSER",
+    "MicroMessenger",
+    "MQQBrowser",
+    "QBWebViewType",
+    "QBWebViewUA",
+    "QQBrowser",
+    "QQDownload",
+    "TaoBrowser",
+    "XiaoMi/MiuiBrowser",
+  ].map((s) => s.toLowerCase()),
+);

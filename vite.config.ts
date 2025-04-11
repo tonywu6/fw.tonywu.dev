@@ -32,7 +32,7 @@ export default defineConfig({
     tsconfigPaths(),
     babelMacros(),
     lingui(),
-    remoteCSS(),
+    prebuild(),
   ],
   esbuild: { legalComments: "external" },
   build: {
@@ -51,9 +51,9 @@ export default defineConfig({
   },
 });
 
-function remoteCSS(): Plugin {
+function prebuild(): Plugin {
   return {
-    name: "remote-css",
+    name: "prebuild",
     buildStart: async () => {
       await import("./app/css/fetch.js");
     },

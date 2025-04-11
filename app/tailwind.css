@@ -2,8 +2,10 @@
 
 @theme {
   --font-sans:
-    "Inter", "Noto Serif SC", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --font-zh: "Inter", "Noto Serif SC", var(--font-sans);
 
   --font-mono:
     "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,

@@ -5,7 +5,7 @@ import { EncryptJWT, exportJWK, generateSecret } from "jose";
 import { claim } from "./";
 
 export function forwarded({ url }: { url: string }) {
-  return async function loader({ request }: LoaderFunctionArgs) {
+  async function loader({ request }: LoaderFunctionArgs) {
     const detected = detectUserAgent(request.headers.get("user-agent") || "");
     switch (detected.action) {
       case "allowed": {
@@ -25,10 +25,17 @@ export function forwarded({ url }: { url: string }) {
         // this doesn't actually encrypt anything because we are sending the key
         // this is just for obfuscation
         const { reason } = detected;
-        return { jwt, jwk, reason };
+        const { url: href } = request;
+        return { jwt, jwk, reason, href };
       }
     }
-  };
+  }
+
+  if (import.meta.env.DEV) {
+    loader.url = url;
+  }
+
+  return loader;
 }
 
 type UserAgentAction =
@@ -68,4 +75,4 @@ function detectUserAgent(ua: string): UserAgentAction {
 
 const enc = "A128GCM";
 
-const blockProducts = new Set(["Firefox", "Chrome"]);
+const blockProducts = new Set(["Firefox", "Chrome", "AppleWebKit"]);

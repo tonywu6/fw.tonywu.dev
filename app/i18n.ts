@@ -10,9 +10,9 @@ const available = {
 
 export function selectLanguage(req: Request) {
   const requested = acceptLanguage(req.headers.get("accept-language") ?? "");
-  const selected = match(requested, Object.keys(available), "en");
-  const catalog = available[selected as keyof typeof available];
-  return { locale: selected, catalog };
+  const locale = match(requested, Object.keys(available), "en");
+  const catalog = available[locale as keyof typeof available];
+  return { locale, catalog };
 }
 
 function acceptLanguage(header: string): string[] {

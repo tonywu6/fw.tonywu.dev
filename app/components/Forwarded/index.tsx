@@ -12,9 +12,10 @@ import type { forwarded } from "./.server";
 export const meta: MetaFunction = () => [{ title: "index.html" }];
 
 export function Forwarded() {
-  const { decrypt, hashable, reason } = useForwarded();
+  const { decrypt, hashable } = useForwarded();
+  const { reason, href } = useLoaderData<Loader>();
 
-  const { t } = useLingui();
+  const { t, i18n } = useLingui();
 
   const inner = useRef<HTMLCanvasElement>(null);
   const width = useClientWidth(inner);
@@ -46,10 +47,10 @@ export function Forwarded() {
           }
         : {
             protocol: "#565b66",
-            host: "#2663a0",
-            pathname: "#2663a0",
-            search: "#6e5688",
-            hash: "#39705e",
+            host: "#1c6cbb",
+            pathname: "#1c6cbb",
+            search: "#764aa5",
+            hash: "#358a6f",
             normal: 400,
             strong: 600,
           };
@@ -151,9 +152,10 @@ export function Forwarded() {
     <div className="min-h-screen flex flex-col justify-between">
       <main
         className={twJoin(
-          "px-4 py-6 w-full min-w-0 max-w-[1024px]",
-          "sm:px-6 sm:py-8",
+          "w-full min-w-0 max-w-[1024px]",
+          "px-4 py-6 sm:px-6 sm:py-8",
           "flex flex-col items-stretch gap-4",
+          i18n.locale === "zh-Hans" ? "font-(family-name:--font-zh) font-[600]" : null,
         )}
       >
         {copied === undefined ? (
@@ -165,7 +167,7 @@ export function Forwarded() {
         ) : (
           <p>
             <Trans>
-              <span className="text-[#5f7632] dark:text-[#aad94c]">
+              <span className={twJoin("text-[#5f7632] dark:text-[#aad94c]")}>
                 <IconCheck />
                 Link copied,{" "}
               </span>
@@ -173,6 +175,11 @@ export function Forwarded() {
             </Trans>
           </p>
         )}
+        <noscript>
+          <a href={href} className="text-blue-500">
+            {href}
+          </a>
+        </noscript>
         <div
           role="link"
           title={t`Click to copy`}
@@ -204,7 +211,14 @@ export function Forwarded() {
           "flex flex-col items-stretch gap-2",
         )}
       >
-        <p className="text-sm dark:text-neutral-300">
+        <p
+          className={twJoin(
+            "text-sm dark:text-neutral-300",
+            i18n.locale === "zh-Hans"
+              ? "font-(family-name:--font-zh) font-[600]"
+              : null,
+          )}
+        >
           <Trans>You are seeing this page because of:</Trans>
         </p>
         <pre className="text-sm whitespace-pre-wrap leading-[1.4] group">
@@ -228,7 +242,7 @@ export function Forwarded() {
                   <span
                     className={twJoin(
                       "text-[#c53601] dark:text-[#ff8f40]",
-                      "opacity-60 dark:opacity-30",
+                      "opacity-50 dark:opacity-30",
                       "group-hover:opacity-90",
                     )}
                   >
@@ -410,7 +424,7 @@ function scaled(px: number) {
 }
 
 function useForwarded() {
-  const { jwk, jwt, reason } = useLoaderData<Loader>();
+  const { jwk, jwt } = useLoaderData<Loader>();
   return {
     decrypt: async () => {
       const key = await importJWK(jwk);
@@ -420,7 +434,6 @@ function useForwarded() {
       return new URL(raw as string);
     },
     hashable: [jwk, jwt] as unknown,
-    reason,
   };
 }
 

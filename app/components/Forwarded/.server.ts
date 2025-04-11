@@ -6,7 +6,9 @@ import { claim } from "./";
 
 export function forwarded({ url }: { url: string }) {
   async function loader({ request }: LoaderFunctionArgs) {
-    const detected = detectUserAgent(request.headers.get("user-agent") || "");
+    const ua = request.headers.get("user-agent") || "";
+    const detected = detectUserAgent(ua);
+    console.log(`[user-agent] ${detected.action} ${ua}`);
     switch (detected.action) {
       case "allowed": {
         const res = redirect(url, { status: 307 });

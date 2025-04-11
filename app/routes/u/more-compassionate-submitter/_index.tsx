@@ -1,7 +1,7 @@
 import { forwarded } from "~/components/Forwarded/.server";
 
 export const loader = forwarded({
-  url: "https://web.dev/articles/optimize-cls?hl=de#images-without-dimensions",
+  url: "https://tonywu6.github.io/mdbookkit/rustdoc-link/",
 });
 
 export { Forwarded as default, meta } from "~/components/Forwarded";

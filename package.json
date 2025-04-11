@@ -49,14 +49,14 @@
   "name": "fw.tonywu.dev",
   "private": true,
   "scripts": {
-    "build": "pnpm build:fonts && remix vite:build",
-    "build:fonts": "node util/fonts.js",
+    "build": "remix vite:build",
+    "build:fonts": "node app/css/fetch.js",
     "ci:eslint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "ci:tsc": "tsc",
     "deploy": "wrangler pages deploy ./build/client",
     "dev": "remix vite:dev",
     "lingui:extract": "lingui extract",
-    "lingui:compile": "lingui compile --typescript",
+    "lingui:compile": "lingui compile",
     "serve": "wrangler pages dev ./build/client"
   },
   "sideEffects": false,

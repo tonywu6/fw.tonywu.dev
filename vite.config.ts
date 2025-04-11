@@ -4,6 +4,7 @@ import {
   cloudflareDevProxyVitePlugin as remixCloudflareDevProxy,
 } from "@remix-run/dev";
 import { flatRoutes } from "remix-flat-routes";
+import type { Plugin } from "vite";
 import { defineConfig } from "vite";
 import babelMacros from "vite-plugin-babel-macros";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -31,6 +32,30 @@ export default defineConfig({
     tsconfigPaths(),
     babelMacros(),
     lingui(),
+    remoteCSS(),
   ],
   esbuild: { legalComments: "external" },
+  build: {
+    rollupOptions: {
+      onwarn: (warning, log) => {
+        if (
+          warning.plugin === "vite:reporter" &&
+          warning.message.includes("dynamic import will not move module") &&
+          warning.message.includes("virtual:remix/server-build")
+        ) {
+          return;
+        }
+        log(warning);
+      },
+    },
+  },
 });
+
+function remoteCSS(): Plugin {
+  return {
+    name: "remote-css",
+    buildStart: async () => {
+      await import("./app/css/fetch.js");
+    },
+  };
+}

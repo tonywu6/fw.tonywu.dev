@@ -32,6 +32,7 @@
     "**/.client/**/*.tsx",
     "eslint.config.js",
     "lingui.config.js",
+    "app/css/fetch.js",
     "util"
   ]
 }

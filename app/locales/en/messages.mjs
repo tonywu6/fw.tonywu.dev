@@ -1,0 +1,1 @@
+/*eslint-disable*/export const messages=JSON.parse("{\"0EDxcU\":[\"<0><1/>Link copied, </0><2>paste into a standard browser to continue.</2>\"],\"QNT9q/\":[\"Click link below to copy, then continue in a standard browser.\"],\"sby+1/\":[\"Click to copy\"],\"cE6mYP\":[\"You are seeing this page because of:\"]}");

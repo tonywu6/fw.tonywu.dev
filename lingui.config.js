@@ -12,5 +12,5 @@ export default defineConfig({
     },
   ],
   format: "po",
-  compileNamespace: "ts",
+  compileNamespace: "es",
 });

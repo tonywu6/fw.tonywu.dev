@@ -33,7 +33,11 @@ export default function Page() {
   const { pages } = useLoaderData<typeof loader>();
 
   if (!import.meta.env.DEV) {
-    return <p>Page intentionally left blank.</p>;
+    return (
+      <p className="max-w-[1024px] px-4 py-6 sm:px-6 sm:py-8">
+        Page intentionally left blank.
+      </p>
+    );
   }
 
   return (

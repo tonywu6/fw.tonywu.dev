@@ -9,7 +9,7 @@ import * as esbuild from "esbuild";
 // https://github.com/nodejs/undici/issues/2990
 net.setDefaultAutoSelectFamilyAttemptTimeout(5000);
 
-const outdir = relpath("../app/css/vendor");
+const outdir = relpath("./vendor");
 
 await fs.rm(outdir, { recursive: true, force: true });
 
@@ -19,16 +19,19 @@ await esbuild.build({
   target: ["chrome93", "firefox93", "safari15", "es2020"],
   platform: "browser",
   plugins: [remoteCSS()],
-  entryPoints: [relpath("../app/css/fonts.css")],
+  entryPoints: [relpath("./fonts.css")],
   outdir,
+  assetNames: "[hash]",
 });
 
 /** @returns {esbuild.Plugin} */
 function remoteCSS() {
   return {
     name: "remote-css",
-    setup: (build) => {
-      const cacheDir = relpath("../app/css/.cache");
+    setup: async (build) => {
+      const chars = await loadChars();
+
+      const cacheDir = relpath("./.cache");
 
       build.onResolve(
         {
@@ -44,8 +47,15 @@ function remoteCSS() {
           filter: /^https:\/\//,
           namespace: "remote-css",
         },
-        ({ path, kind }) =>
-          kind === "url-token" ? { path, namespace: "remote-url" } : undefined,
+        ({ path, kind }) => {
+          if (kind !== "url-token") {
+            return undefined;
+          }
+          if (!pathlib.extname(path)) {
+            path += "#.bin";
+          }
+          return { path, namespace: "remote-url" };
+        },
       );
 
       build.onLoad(
@@ -54,7 +64,13 @@ function remoteCSS() {
           namespace: "remote-css",
         },
         async ({ path }) => {
-          const result = await cachedFetch(path, {
+          const url = new URL(path);
+
+          if (url.hostname === "fonts.googleapis.com" && url.searchParams.has("text")) {
+            url.searchParams.set("text", chars);
+          }
+
+          const result = await cachedFetch(url, {
             headers: {
               "user-agent":
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:137.0) Gecko/20100101 Firefox/93.0",
@@ -130,6 +146,32 @@ function remoteCSS() {
       }
     },
   };
+}
+
+async function loadChars() {
+  /** @type {Set<string>} */
+  const chars = new Set();
+
+  for (const catalog of [
+    import("../locales/en/messages.mjs"),
+    import("../locales/zh-Hans/messages.mjs"),
+  ]) {
+    /** @type {import("../locales/en/messages")} */
+    const { messages } = await catalog;
+    for (const message of Object.values(messages)) {
+      if (typeof message === "string") {
+        [...message].forEach((char) => chars.add(char));
+      } else {
+        for (const token of message) {
+          if (typeof token === "string") {
+            [...token].forEach((char) => chars.add(char));
+          }
+        }
+      }
+    }
+  }
+
+  return [...chars].join("");
 }
 
 /** @param {string} path */

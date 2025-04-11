@@ -1,7 +1,7 @@
 import { match } from "@formatjs/intl-localematcher";
 
-import { messages as en } from "./locales/en/messages";
-import { messages as zhHans } from "./locales/zh-Hans/messages";
+import { messages as en } from "./locales/en/messages.mjs";
+import { messages as zhHans } from "./locales/zh-Hans/messages.mjs";
 
 const available = {
   ["en"]: en,

@@ -83,6 +83,7 @@ const blockProducts = new Set(
     "baiduboxapp",
     "Baiduspider",
     "DingTalk",
+    "DingTalkBot-LinkService",
     "LBBROWSER",
     "MicroMessenger",
     "MQQBrowser",

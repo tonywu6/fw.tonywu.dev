@@ -92,3 +92,7 @@ const blockProducts = new Set(
     "XiaoMi/MiuiBrowser",
   ].map((s) => s.toLowerCase()),
 );
+
+if (import.meta.env.DEV) {
+  blockProducts.add("firefox");
+}

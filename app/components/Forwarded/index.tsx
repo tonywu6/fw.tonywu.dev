@@ -153,7 +153,7 @@ export function Forwarded() {
         className={twJoin(
           "w-full min-w-0 max-w-[1024px]",
           "px-4 py-4 sm:px-6 sm:py-8",
-          "flex flex-col items-stretch gap-6",
+          "flex flex-col items-stretch gap-4",
           cjkFonts,
         )}
       >

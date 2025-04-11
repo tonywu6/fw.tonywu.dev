@@ -1,0 +1,30 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2025-04-11 06:26+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: app/components/Forwarded/index.tsx:167
+msgid "<0><1/>Link copied, </0><2>paste into a standard browser to continue.</2>"
+msgstr "<0><1/>Link copied, </0><2>paste into a standard browser to continue.</2>"
+
+#: app/components/Forwarded/index.tsx:161
+msgid "Click link below to copy, then continue in a standard browser."
+msgstr "Click link below to copy, then continue in a standard browser."
+
+#: app/components/Forwarded/index.tsx:178
+msgid "Click to copy"
+msgstr "Click to copy"
+
+#: app/components/Forwarded/index.tsx:208
+msgid "You are seeing this page because of:"
+msgstr "You are seeing this page because of:"

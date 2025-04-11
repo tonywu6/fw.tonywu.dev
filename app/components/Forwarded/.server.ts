@@ -68,4 +68,4 @@ function detectUserAgent(ua: string): UserAgentAction {
 
 const enc = "A128GCM";
 
-const blockProducts = new Set(["Firefox"]);
+const blockProducts = new Set(["Firefox", "Chrome"]);

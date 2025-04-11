@@ -1,3 +1,4 @@
+import { Trans, useLingui } from "@lingui/react/macro";
 import type { MetaFunction } from "@remix-run/react";
 import { useLoaderData } from "@remix-run/react";
 import { useQuery } from "@tanstack/react-query";
@@ -12,6 +13,8 @@ export const meta: MetaFunction = () => [{ title: "index.html" }];
 
 export function Forwarded() {
   const { decrypt, hashable, reason } = useForwarded();
+
+  const { t } = useLingui();
 
   const inner = useRef<HTMLCanvasElement>(null);
   const width = useClientWidth(inner);
@@ -148,25 +151,31 @@ export function Forwarded() {
     <div className="min-h-screen flex flex-col justify-between">
       <main
         className={twJoin(
-          "px-4 py-4 w-full min-w-0 max-w-[1024px]",
+          "px-4 py-6 w-full min-w-0 max-w-[1024px]",
           "sm:px-6 sm:py-8",
           "flex flex-col items-stretch gap-4",
         )}
       >
         {copied === undefined ? (
-          <p>Click link below to copy, then continue in your browser.</p>
+          <p>
+            <Trans>
+              Click link below to copy, then continue in a standard browser.
+            </Trans>
+          </p>
         ) : (
           <p>
-            <span className="text-[#5f7632] dark:text-[#aad94c]">
-              <IconCheck />
-              Link copied,
-            </span>
-            <span> paste into browser to continue.</span>
+            <Trans>
+              <span className="text-[#5f7632] dark:text-[#aad94c]">
+                <IconCheck />
+                Link copied,{" "}
+              </span>
+              <span>paste into a standard browser to continue.</span>
+            </Trans>
           </p>
         )}
         <div
           role="link"
-          title="click to copy"
+          title={t`Click to copy`}
           aria-keyshortcuts="Enter"
           tabIndex={0}
           onClick={() => copyToClipboard()}
@@ -196,7 +205,7 @@ export function Forwarded() {
         )}
       >
         <p className="text-sm dark:text-neutral-300">
-          You are seeing this page because of:
+          <Trans>You are seeing this page because of:</Trans>
         </p>
         <pre className="text-sm whitespace-pre-wrap leading-[1.4] group">
           {reason.map(({ text, style }, idx) => {

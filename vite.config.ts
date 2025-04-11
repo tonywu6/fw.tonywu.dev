@@ -1,9 +1,11 @@
+import { lingui } from "@lingui/vite-plugin";
 import {
   vitePlugin as remix,
   cloudflareDevProxyVitePlugin as remixCloudflareDevProxy,
 } from "@remix-run/dev";
 import { flatRoutes } from "remix-flat-routes";
 import { defineConfig } from "vite";
+import babelMacros from "vite-plugin-babel-macros";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 declare module "@remix-run/cloudflare" {
@@ -27,6 +29,8 @@ export default defineConfig({
       routes: async (defineRoutes) => flatRoutes("routes", defineRoutes),
     }),
     tsconfigPaths(),
+    babelMacros(),
+    lingui(),
   ],
   esbuild: { legalComments: "external" },
 });

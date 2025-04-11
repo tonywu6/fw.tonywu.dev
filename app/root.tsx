@@ -78,7 +78,7 @@ export function ErrorBoundary() {
         <QueryClientProvider client={queryClient}>
           <I18nProvider i18n={i18n}>
             <Body>
-              <h1 className="max-w-[1024px] px-4 py-6 sm:px-6 sm:py-8">
+              <h1 className="max-w-[1024px] px-4 py-4 sm:px-6 sm:py-8">
                 <a
                   href={`https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/${status}`}
                   target="_blank"

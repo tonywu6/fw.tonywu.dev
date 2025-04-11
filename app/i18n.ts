@@ -1,4 +1,5 @@
 import { match } from "@formatjs/intl-localematcher";
+import { useLingui } from "@lingui/react";
 
 import { messages as en } from "./locales/en/messages.mjs";
 import { messages as zhHans } from "./locales/zh-Hans/messages.mjs";
@@ -13,6 +14,11 @@ export function selectLanguage(req: Request) {
   const locale = match(requested, Object.keys(available), "en");
   const catalog = available[locale as keyof typeof available];
   return { locale, catalog };
+}
+
+export function useCJKFonts() {
+  const { i18n } = useLingui();
+  return i18n.locale === "zh-Hans" ? "font-(family-name:--font-zh) font-[600]" : null;
 }
 
 function acceptLanguage(header: string): string[] {

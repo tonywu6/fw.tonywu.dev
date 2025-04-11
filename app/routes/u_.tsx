@@ -1,8 +1,12 @@
 import * as fs from "node:fs/promises";
 
+import { Trans } from "@lingui/react/macro";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { Fragment } from "react";
+import { twJoin } from "tailwind-merge";
+
+import { useCJKFonts } from "~/i18n";
 
 export const meta: MetaFunction = () => [{ title: "index.html" }];
 
@@ -32,23 +36,23 @@ export async function loader() {
 export default function Page() {
   const { pages } = useLoaderData<typeof loader>();
 
+  const cjkFonts = useCJKFonts();
+
   if (!import.meta.env.DEV) {
     return (
-      <p className="max-w-[1024px] px-4 py-6 sm:px-6 sm:py-8">
-        Page intentionally left blank.
+      <p className={twJoin("max-w-[1024px] px-4 py-4 sm:px-6 sm:py-8", cjkFonts)}>
+        <Trans>Page intentionally left blank.</Trans>
       </p>
     );
   }
 
   return (
     <div
-      className="max-w-[1024px] px-4 py-6 sm:px-6 sm:py-8"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "max-content auto",
-        alignItems: "baseline",
-        gap: 12,
-      }}
+      className={twJoin(
+        "max-w-[1024px] px-4 py-4 sm:px-6 sm:py-8",
+        "grid items-baseline gap-2",
+        "sm:grid-cols-[max-content_auto] sm:gap-3",
+      )}
     >
       {pages.map(({ slug, url }) => (
         <Fragment key={slug}>

@@ -49,7 +49,7 @@
   "name": "fw.tonywu.dev",
   "private": true,
   "scripts": {
-    "build": "remix vite:build",
+    "build": "pnpm lingui:compile && remix vite:build",
     "build:fonts": "node app/css/fetch.js",
     "ci:eslint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "ci:tsc": "tsc",

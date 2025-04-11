@@ -1,11 +1,13 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { MetaFunction } from "@remix-run/react";
 import { useLoaderData } from "@remix-run/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { importJWK, jwtDecrypt } from "jose";
 import type { CSSProperties, RefObject } from "react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { twJoin } from "tailwind-merge";
+
+import { useCJKFonts } from "~/i18n";
 
 import type { forwarded } from "./.server";
 
@@ -13,173 +15,182 @@ export const meta: MetaFunction = () => [{ title: "index.html" }];
 
 export function Forwarded() {
   const { decrypt, hashable } = useForwarded();
-  const { reason, href } = useLoaderData<Loader>();
+  const { reason } = useLoaderData<Loader>();
 
-  const { t, i18n } = useLingui();
+  const { t } = useLingui();
+  const cjkFonts = useCJKFonts();
 
   const inner = useRef<HTMLCanvasElement>(null);
   const width = useClientWidth(inner);
 
-  const { data: { initHeight, drawBlocking, drawLater } = {} } = useQuery({
-    queryKey: [String(decrypt), hashable, width],
-    enabled: width !== undefined,
-    queryFn: async () => {
-      const url = await decrypt();
+  const { data: { initHeight, drawBlocking, drawLater } = {}, error: drawErr } =
+    useQuery({
+      queryKey: [String(decrypt), hashable, width],
+      enabled: width !== undefined,
+      queryFn: async () => {
+        const url = await decrypt();
 
-      const left = 0;
-      const top = 2;
+        const left = 0;
+        const top = 0;
 
-      const small = window.matchMedia("(width < 40rem)").matches;
+        const small = window.matchMedia("(width < 40rem)").matches;
 
-      const fontSize = small ? 20 : 24;
-      const lineHeight = fontSize * 1.4;
+        const fontSize = small ? 20 : 24;
+        const lineHeight = fontSize * 1.4;
 
-      const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const style = dark
-        ? {
-            protocol: "#8a9199",
-            host: "#59c2ff",
-            pathname: "#59c2ff",
-            search: "#d2a6ff",
-            hash: "#95e6cb",
-            normal: 300,
-            strong: 600,
-          }
-        : {
-            protocol: "#565b66",
-            host: "#1c6cbb",
-            pathname: "#1c6cbb",
-            search: "#764aa5",
-            hash: "#358a6f",
-            normal: 400,
-            strong: 600,
-          };
+        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const style = dark
+          ? {
+              protocol: "#8a9199",
+              host: "#59c2ff",
+              pathname: "#59c2ff",
+              search: "#d2a6ff",
+              hash: "#95e6cb",
+              normal: 300,
+              strong: 600,
+            }
+          : {
+              protocol: "#565b66",
+              host: "#1c6cbb",
+              pathname: "#1c6cbb",
+              search: "#764aa5",
+              hash: "#358a6f",
+              normal: 400,
+              strong: 600,
+            };
 
-      const font = "Roboto Mono, ui-monospace, monospace";
+        const font = "Roboto Mono, ui-monospace, monospace";
 
-      const text = {
-        text: [
-          {
-            text: url.protocol + "//",
-            fill: style.protocol,
-            font: `${style.normal} ${fontSize}px ${font}`,
-          },
-          {
-            text: url.host,
-            fill: style.host,
-            font: `${style.strong} ${fontSize}px ${font}`,
-          },
-          {
-            text: url.pathname,
-            fill: style.pathname,
-            font: `${style.normal} ${fontSize}px ${font}`,
-          },
-          {
-            text: url.search,
-            fill: style.search,
-            font: `${style.normal} ${fontSize}px ${font}`,
-          },
-          {
-            text: url.hash,
-            fill: style.hash,
-            font: `${style.normal} ${fontSize}px ${font}`,
-          },
-        ],
-        wordBreaks: /[:/.?+ -]/u,
-      } satisfies StyledParagraph;
+        const text = {
+          text: [
+            {
+              text: url.protocol + "//",
+              fill: style.protocol,
+              font: `${style.normal} ${fontSize}px ${font}`,
+            },
+            {
+              text: url.host,
+              fill: style.host,
+              font: `${style.strong} ${fontSize}px ${font}`,
+            },
+            {
+              text: url.pathname,
+              fill: style.pathname,
+              font: `${style.normal} ${fontSize}px ${font}`,
+            },
+            {
+              text: url.search,
+              fill: style.search,
+              font: `${style.normal} ${fontSize}px ${font}`,
+            },
+            {
+              text: url.hash,
+              fill: style.hash,
+              font: `${style.normal} ${fontSize}px ${font}`,
+            },
+          ],
+          wordBreaks: /[:/.?+ -]/u,
+        } satisfies StyledParagraph;
 
-      const drawer = drawText({
-        width: unwrap({ width }),
-        leading: lineHeight,
-        left: scaled(left),
-        top: scaled(top),
-        paragraph: text,
-      });
-
-      const bboxHeight = (measured: number) => top * 2 + measured;
-
-      const initHeight = bboxHeight(drawer.measure().height);
-
-      function drawBlocking() {
-        drawer.draw(({ height }) => {
-          height = bboxHeight(height);
-          const canvas = unwrap({ canvas: inner.current });
-          canvas.style.height = `${height}px`;
-          canvas.width = scaled(unwrap({ width }));
-          canvas.height = scaled(height);
-          const ctx = canvas.getContext("2d")!;
-          ctx.resetTransform();
-          ctx.scale(scaled(1), scaled(1));
-          return ctx;
+        const drawer = drawText({
+          width: unwrap({ width }),
+          leading: lineHeight,
+          left: scaled(left),
+          top: scaled(top),
+          paragraph: text,
         });
-      }
 
-      async function drawLater() {
-        await drawer.fonts().catch(() => {});
-        drawBlocking();
-      }
+        const bboxHeight = (measured: number) => top * 2 + measured;
 
-      return { initHeight, drawBlocking, drawLater };
-    },
-  });
+        const initHeight = bboxHeight(drawer.measure().height);
+
+        function drawBlocking() {
+          drawer.draw(({ height }) => {
+            height = bboxHeight(height);
+            const canvas = unwrap({ canvas: inner.current });
+            canvas.style.height = `${height}px`;
+            canvas.width = scaled(unwrap({ width }));
+            canvas.height = scaled(height);
+            const ctx = canvas.getContext("2d")!;
+            ctx.resetTransform();
+            ctx.scale(scaled(1), scaled(1));
+            return ctx;
+          });
+        }
+
+        async function drawLater() {
+          await drawer.fonts().catch(() => {});
+          drawBlocking();
+        }
+
+        return { initHeight, drawBlocking, drawLater };
+      },
+    });
 
   useEffect(() => {
     drawBlocking?.();
     drawLater?.();
   }, [drawBlocking, drawLater]);
 
-  const copyToClipboard = () => {
-    navigator.clipboard
-      .writeText(window.location.href)
-      .then(() => {
-        setCopied(window.setTimeout(() => setCopied(undefined), 5_000));
-      })
-      .catch(() => {});
-  };
-
-  const [copied, setCopied] = useState<number>();
-
-  useEffect(
-    () => () => {
-      if (copied) {
-        window.clearTimeout(copied);
-      }
+  const {
+    mutate: copyToClipboard,
+    data: copyOk,
+    error: copyErr,
+    reset,
+  } = useMutation({
+    mutationFn: async () => {
+      await navigator.clipboard.writeText(window.location.href);
+      return true;
     },
-    [copied],
-  );
+    onSettled: () => {
+      setTimeout(() => reset(), 5_000);
+    },
+  });
 
   return (
     <div className="min-h-screen flex flex-col justify-between">
       <main
         className={twJoin(
           "w-full min-w-0 max-w-[1024px]",
-          "px-4 py-6 sm:px-6 sm:py-8",
-          "flex flex-col items-stretch gap-4",
-          i18n.locale === "zh-Hans" ? "font-(family-name:--font-zh) font-[600]" : null,
+          "px-4 py-4 sm:px-6 sm:py-8",
+          "flex flex-col items-stretch gap-6",
+          cjkFonts,
         )}
       >
-        {copied === undefined ? (
-          <p>
-            <Trans>
-              Click link below to copy, then continue in a standard browser.
-            </Trans>
-          </p>
-        ) : (
-          <p>
-            <Trans>
-              <span className={twJoin("text-[#5f7632] dark:text-[#aad94c]")}>
-                <IconCheck />
-                Link copied,{" "}
-              </span>
-              <span>paste into a standard browser to continue.</span>
-            </Trans>
-          </p>
-        )}
-        <noscript>
-          <a href={href} className="text-blue-500">
-            {href}
-          </a>
-        </noscript>
+        <p>
+          {(() => {
+            if (copyOk) {
+              return (
+                <Trans>
+                  <span className={twJoin("text-[#5f7632] dark:text-[#aad94c]")}>
+                    <IconCheck />
+                    Link copied,{" "}
+                  </span>
+                  <span>paste into a standard browser to continue.</span>
+                </Trans>
+              );
+            }
+            if (copyErr) {
+              return (
+                <Trans>
+                  <span className={twJoin("text-[#b3393f] dark:text-[#f07178]")}>
+                    <IconError />
+                    Link failed to copy{" "}
+                  </span>
+                  <span>due to browser restrictions.</span>
+                </Trans>
+              );
+            }
+            return (
+              <Trans>
+                Click link below to copy, then continue in a standard browser.
+              </Trans>
+            );
+          })()}
+        </p>
+
+        <NoScript error={drawErr} />
+
         <div
           role="link"
           title={t`Click to copy`}
@@ -195,7 +206,7 @@ export function Forwarded() {
             "flex flex-col justify-center items-stretch",
             "focus:outline-[1.5px] focus:outline-offset-8",
             "focus:outline-[#2663a0] dark:focus:outline-[#59c2ff]",
-            "pb-0.5 cursor-pointer",
+            "pb-[1px] cursor-pointer",
             // must have boxes to have a width to measure height
             // so cannot be display: none here
             initHeight === undefined ? "invisible" : null,
@@ -204,6 +215,7 @@ export function Forwarded() {
           <canvas height={0} style={{ height: initHeight }} ref={inner}></canvas>
         </div>
       </main>
+
       <footer
         className={twJoin(
           "px-4 py-4 w-full min-w-0 max-w-[1024px]",
@@ -211,14 +223,7 @@ export function Forwarded() {
           "flex flex-col items-stretch gap-2",
         )}
       >
-        <p
-          className={twJoin(
-            "text-sm dark:text-neutral-300",
-            i18n.locale === "zh-Hans"
-              ? "font-(family-name:--font-zh) font-[600]"
-              : null,
-          )}
-        >
+        <p className={twJoin("text-sm dark:text-neutral-300", cjkFonts)}>
           <Trans>You are seeing this page because of:</Trans>
         </p>
         <pre className="text-sm whitespace-pre-wrap leading-[1.4] group">
@@ -427,14 +432,39 @@ function useForwarded() {
   const { jwk, jwt } = useLoaderData<Loader>();
   return {
     decrypt: async () => {
-      const key = await importJWK(jwk);
-      const {
-        payload: { [claim]: raw },
-      } = await jwtDecrypt(jwt, key);
-      return new URL(raw as string);
+      try {
+        const key = await importJWK(jwk);
+        const {
+          payload: { [claim]: raw },
+        } = await jwtDecrypt(jwt, key);
+        return new URL(raw as string);
+      } catch (e) {
+        console.error(e);
+        return new URL(`data:application/jose,${jwt}`);
+      }
     },
     hashable: [jwk, jwt] as unknown,
   };
+}
+
+function NoScript({ error }: { error: unknown }) {
+  const { href } = useLoaderData<Loader>();
+  return (
+    <Fragment>
+      <noscript>
+        <a href={href} className="text-blue-500">
+          {href}
+        </a>
+      </noscript>
+      {error ? (
+        <p>
+          <a href={href} className="text-blue-500">
+            {href}
+          </a>
+        </p>
+      ) : null}
+    </Fragment>
+  );
 }
 
 function IconCheck() {
@@ -449,6 +479,25 @@ function IconCheck() {
         fillRule="evenodd"
         d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
         clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function IconError() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="size-4 relative top-[-1px] me-1 inline"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
       />
     </svg>
   );

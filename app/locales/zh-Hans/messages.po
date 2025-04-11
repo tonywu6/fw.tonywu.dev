@@ -13,18 +13,27 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: app/components/Forwarded/index.tsx:167
-msgid "<0><1/>Link copied, </0><2>paste into a standard browser to continue.</2>"
-msgstr "<0><1/>链接已复制</0><2>，请于系统浏览器打开。</2>"
-
 #: app/components/Forwarded/index.tsx:161
+msgid "<0><1/>Link copied, </0><2>paste into a standard browser to continue.</2>"
+msgstr "<0><1/>链接已复制，</0><2>请于系统浏览器打开。</2>"
+
+#: app/components/Forwarded/index.tsx:172
+msgid "<0><1/>Link failed to copy </0><2>due to browser restrictions.</2>"
+msgstr "<0><1/>链接复制失败，</0><2>请检查浏览器设置。</2>"
+
+#: app/components/Forwarded/index.tsx:182
 msgid "Click link below to copy, then continue in a standard browser."
 msgstr "点击链接以复制，然后于系统浏览器打开。"
 
-#: app/components/Forwarded/index.tsx:178
+#: app/components/Forwarded/index.tsx:193
 msgid "Click to copy"
 msgstr "点击进行复制"
 
-#: app/components/Forwarded/index.tsx:208
+#: app/routes/u_.tsx:40
+#: app/routes/_index.tsx:9
+msgid "Page intentionally left blank."
+msgstr "空白页"
+
+#: app/components/Forwarded/index.tsx:231
 msgid "You are seeing this page because of:"
 msgstr "你之所以看到当前页面，是因为："

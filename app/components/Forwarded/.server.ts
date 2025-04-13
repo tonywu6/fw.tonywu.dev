@@ -8,7 +8,7 @@ export function forwarded({ url }: { url: string }) {
   async function loader({ request }: LoaderFunctionArgs) {
     const ua = request.headers.get("user-agent") || "";
     const detected = detectUserAgent(ua);
-    console.log(`[user-agent] ${detected.action} ${ua}`);
+    log({ ua, detected, request });
     switch (detected.action) {
       case "allowed": {
         const res = redirect(url, { status: 307 });
@@ -76,6 +76,24 @@ function detectUserAgent(ua: string): UserAgentAction {
   }
 }
 
+function log(data: { ua: string; detected: UserAgentAction; request: Request }) {
+  const {
+    ua,
+    detected: { action },
+    request: { cf: { asn, city, region, country, postalCode, timezone } = {} },
+  } = data;
+  console.log({
+    ua,
+    action,
+    asn,
+    city,
+    region,
+    country,
+    postalCode,
+    timezone,
+  });
+}
+
 const blockProducts = new Set(
   [
     "AliApp(DingTalk",
@@ -89,6 +107,7 @@ const blockProducts = new Set(
     "MQQBrowser",
     "QBWebViewType",
     "QBWebViewUA",
+    "QQ",
     "QQBrowser",
     "QQDownload",
     "TaoBrowser",

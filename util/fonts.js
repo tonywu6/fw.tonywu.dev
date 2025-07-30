@@ -9,7 +9,7 @@ import * as esbuild from "esbuild";
 // https://github.com/nodejs/undici/issues/2990
 net.setDefaultAutoSelectFamilyAttemptTimeout(5000);
 
-const outdir = relpath("./vendor");
+const outdir = relpath("../app/css/vendor");
 
 await fs.rm(outdir, { recursive: true, force: true });
 
@@ -19,7 +19,7 @@ await esbuild.build({
   target: ["chrome93", "firefox93", "safari15", "es2020"],
   platform: "browser",
   plugins: [remoteCSS()],
-  entryPoints: [relpath("./fonts.css")],
+  entryPoints: [relpath("../app/css/fonts.css")],
   outdir,
   assetNames: "[hash]",
 });
@@ -31,7 +31,7 @@ function remoteCSS() {
     setup: async (build) => {
       const chars = await loadChars();
 
-      const cacheDir = relpath("./.cache");
+      const cacheDir = relpath("../app/css/.cache");
 
       build.onResolve(
         {
@@ -153,10 +153,10 @@ async function loadChars() {
   const chars = new Set();
 
   for (const catalog of [
-    import("../locales/en/messages.mjs"),
-    import("../locales/zh-Hans/messages.mjs"),
+    import("../app/i18n/en/messages.mjs"),
+    import("../app/i18n/zh-Hans/messages.mjs"),
   ]) {
-    /** @type {import("../locales/en/messages")} */
+    /** @type {import("../app/i18n/en/messages")} */
     const { messages } = await catalog;
     for (const message of Object.values(messages)) {
       if (typeof message === "string") {

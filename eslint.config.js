@@ -1,9 +1,5 @@
-// @ts-check
-
-import css from "@eslint/css";
 import js from "@eslint/js";
 import { defineConfig } from "eslint/config";
-// @ts-expect-error untyped
 import importPlugin from "eslint-plugin-import";
 import reactJsxA11y from "eslint-plugin-jsx-a11y";
 import react from "eslint-plugin-react";
@@ -12,7 +8,16 @@ import globals from "globals";
 import ts from "typescript-eslint";
 
 export default defineConfig([
-  { ignores: ["!**/.server", "!**/.client", "build"] },
+  {
+    ignores: [
+      "!**/.client",
+      "!**/.server",
+      ".react-router",
+      "app/i18n/**/*.mjs",
+      "build",
+      "worker-configuration.d.ts",
+    ],
+  },
 
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
@@ -32,12 +37,16 @@ export default defineConfig([
     },
   },
 
+  // @ts-expect-error idk
   // eslint-disable-next-line import/no-named-as-default-member
   ts.configs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
     rules: {
-      "@typescript-eslint/consistent-type-imports": ["error"],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { fixStyle: "inline-type-imports", prefer: "type-imports" },
+      ],
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -56,6 +65,7 @@ export default defineConfig([
   react.configs.flat["recommended"],
   react.configs.flat["jsx-runtime"],
   reactHooks.configs["recommended-latest"],
+  // @ts-expect-error idk
   reactJsxA11y.flatConfigs.recommended,
   {
     settings: {
@@ -104,13 +114,15 @@ export default defineConfig([
           ],
         },
       ],
+      "import/consistent-type-specifier-style": ["warn", "prefer-top-level"],
     },
   },
 
-  {
-    files: ["**/*.css"],
-    plugins: { css },
-    language: "css/css",
-    extends: ["css/recommended"],
-  },
+  // https://github.com/jo16oh/khipu/commit/9da15031549ee172b83c4f8e8415023d44dff1fa
+  // {
+  //   files: ["**/*.css"],
+  //   plugins: { css },
+  //   language: "css/css",
+  //   extends: ["css/recommended"],
+  // },
 ]);

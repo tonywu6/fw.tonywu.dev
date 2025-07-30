@@ -4,7 +4,9 @@ import "./tailwind.css";
 import type { Messages } from "@lingui/core";
 import { I18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Fragment } from "react";
+import type { PropsWithChildren } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -14,9 +16,8 @@ import {
   ScrollRestoration,
   useRouteError,
   useRouteLoaderData,
-} from "@remix-run/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Fragment, type PropsWithChildren } from "react";
+} from "react-router";
+import type { LinksFunction, LoaderFunctionArgs } from "react-router";
 
 import { selectLanguage } from "./i18n";
 

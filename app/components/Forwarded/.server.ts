@@ -1,6 +1,6 @@
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { redirect } from "@remix-run/cloudflare";
 import { EncryptJWT, exportJWK, generateSecret } from "jose";
+import { redirect } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 
 import { claim } from "./";
 
@@ -33,11 +33,6 @@ export function forwarded({ url }: { url: string }) {
       }
     }
   }
-
-  if (import.meta.env.DEV) {
-    loader.url = url;
-  }
-
   return loader;
 }
 

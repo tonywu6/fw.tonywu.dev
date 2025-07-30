@@ -1,10 +1,10 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import type { MetaFunction } from "@remix-run/react";
-import { useLoaderData } from "@remix-run/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { importJWK, jwtDecrypt } from "jose";
 import type { CSSProperties, RefObject } from "react";
 import { Fragment, useEffect, useRef, useState } from "react";
+import { useLoaderData } from "react-router";
+import type { MetaFunction } from "react-router";
 import { twJoin } from "tailwind-merge";
 
 import { useCJKFonts } from "~/i18n";
@@ -264,7 +264,7 @@ export function Forwarded() {
   );
 }
 
-function useClientWidth(elem: RefObject<HTMLElement>) {
+function useClientWidth(elem: RefObject<HTMLElement | null>) {
   const [width, setWidth] = useState(elem.current?.clientWidth);
 
   useEffect(() => {

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "baseUrl": ".",
+    "composite": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
@@ -14,25 +15,27 @@
       "~/*": ["./app/*"]
     },
     "resolveJsonModule": true,
+    "rootDirs": [".", "./.react-router/types"],
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2022",
-    "types": ["@remix-run/cloudflare", "vite/client"]
+    "types": ["vite/client", "node"]
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "**/.server.ts",
-    "**/.server.tsx",
-    "**/.server/**/*.ts",
-    "**/.server/**/*.tsx",
-    "**/.client.ts",
-    "**/.client.tsx",
-    "**/.client/**/*.ts",
-    "**/.client/**/*.tsx",
+    ".react-router/types/**/*",
     "eslint.config.js",
     "lingui.config.js",
-    "app/css/fetch.js",
+    "react-router.config.ts",
+    "vite.config.ts",
+    "app/**/*",
+    "app/**/.server.ts",
+    "app/**/.server.tsx",
+    "app/**/.server/**/*",
+    "app/**/.client.ts",
+    "app/**/.client.tsx",
+    "app/**/.client/**/*",
+    "workers/**/*",
+    "worker-configuration.d.ts",
     "util"
   ]
 }

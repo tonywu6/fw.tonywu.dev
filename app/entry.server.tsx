@@ -1,36 +1,26 @@
-import type { AppLoadContext, EntryContext } from "@remix-run/cloudflare";
-import { RemixServer } from "@remix-run/react";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
-
-const ABORT_DELAY = 5000;
+import type { AppLoadContext, EntryContext } from "react-router";
+import { ServerRouter } from "react-router";
 
 export default async function handleRequest(
   request: Request,
   status: number,
   headers: Headers,
-  remixContext: EntryContext,
+  context: EntryContext,
   _loadContext: AppLoadContext,
 ) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), ABORT_DELAY);
-
   const body = await renderToReadableStream(
-    <RemixServer context={remixContext} url={request.url} abortDelay={ABORT_DELAY} />,
+    <ServerRouter context={context} url={request.url} />,
     {
-      signal: controller.signal,
       onError(error: unknown) {
-        if (!controller.signal.aborted) {
-          console.error(error);
-        }
         status = 500;
+        console.error(error);
       },
     },
   );
 
-  body.allReady.then(() => clearTimeout(timeoutId));
-
-  if (isbot(request.headers.get("user-agent") || "")) {
+  if (isbot(request.headers.get("user-agent") || "") || context.isSpaMode) {
     await body.allReady;
   }
 

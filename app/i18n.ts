@@ -1,8 +1,8 @@
 import { match } from "@formatjs/intl-localematcher";
 import { useLingui } from "@lingui/react";
 
-import { messages as en } from "./locales/en/messages.mjs";
-import { messages as zhHans } from "./locales/zh-Hans/messages.mjs";
+import { messages as en } from "./i18n/en/messages.mjs";
+import { messages as zhHans } from "./i18n/zh-Hans/messages.mjs";
 
 const available = {
   ["en"]: en,

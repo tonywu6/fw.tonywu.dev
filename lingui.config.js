@@ -1,13 +1,13 @@
 // @ts-check
 
-import { defineConfig } from "@lingui/cli";
+import { defineConfig } from "@lingui/conf";
 
 export default defineConfig({
   sourceLocale: "en",
   locales: ["zh-Hans", "en"],
   catalogs: [
     {
-      path: "<rootDir>/app/locales/{locale}/messages",
+      path: "<rootDir>/app/i18n/{locale}/messages",
       include: ["app"],
     },
   ],

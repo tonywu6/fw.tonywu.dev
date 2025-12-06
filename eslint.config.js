@@ -1,3 +1,5 @@
+// @ts-check
+
 import js from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import importPlugin from "eslint-plugin-import";
@@ -37,7 +39,6 @@ export default defineConfig([
     },
   },
 
-  // @ts-expect-error idk
   // eslint-disable-next-line import/no-named-as-default-member
   ts.configs.recommended,
   {
@@ -65,7 +66,6 @@ export default defineConfig([
   react.configs.flat["recommended"],
   react.configs.flat["jsx-runtime"],
   reactHooks.configs["recommended-latest"],
-  // @ts-expect-error idk
   reactJsxA11y.flatConfigs.recommended,
   {
     settings: {
